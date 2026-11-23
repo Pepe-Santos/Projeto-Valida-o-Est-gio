@@ -19,9 +19,31 @@ O VerificaEstagio e uma API Django para cadastro e verificacao de contratos de e
 
 ```powershell
 python -m pip install -r requirements.txt
+$env:DJANGO_DEBUG = "True"
 python manage.py migrate
+python populate_data.py   # opcional: dados de exemplo
 python manage.py runserver
 ```
+
+O banco (`db.sqlite3`) e os arquivos enviados (`media/`) não ficam no repositório. O `migrate` cria um banco vazio na primeira execução.
+
+## Configuração
+
+As configurações sensíveis vêm de variáveis de ambiente, nunca do código:
+
+| Variável | Para que serve | Padrão |
+|---|---|---|
+| `DJANGO_DEBUG` | `True` liga o modo de desenvolvimento | `False` |
+| `DJANGO_SECRET_KEY` | Chave secreta do Django. Obrigatória com `DJANGO_DEBUG` desligado | Gerada a cada execução no modo de desenvolvimento |
+| `DJANGO_ALLOWED_HOSTS` | Domínios aceitos, separados por vírgula | `localhost,127.0.0.1` |
+
+Para gerar uma chave:
+
+```powershell
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+Em produção, defina `DJANGO_SECRET_KEY` e `DJANGO_ALLOWED_HOSTS`, deixe `DJANGO_DEBUG` desligado e use um banco como o PostgreSQL no lugar do SQLite.
 
 ## Endpoints Principais
 
@@ -58,6 +80,7 @@ Alguns endpoints aceitam filtros via query string:
 ## Testes
 
 ```powershell
+$env:DJANGO_DEBUG = "True"
 python manage.py check
 python manage.py test
 ```
