@@ -10,22 +10,40 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
+from django.core.management.utils import get_random_secret_key
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
+# Configuração por variáveis de ambiente: nenhuma chave ou senha fica no código.
+# Veja a seção "Configuração" do README.
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+mg1o$t_!-q@6rsmz3t$=+edz6lv5whli5zist&6+1!d7s8p9&'
+# DEBUG fica desligado, a menos que DJANGO_DEBUG=True seja definido (uso local).
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').strip().lower() in ('1', 'true', 'yes', 'on')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# A chave vem de DJANGO_SECRET_KEY. Só no modo de desenvolvimento, sem a variável,
+# o Django gera uma chave temporária a cada execução (as sessões de login caem ao reiniciar).
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = get_random_secret_key()
+    else:
+        raise ImproperlyConfigured(
+            'Defina a variável de ambiente DJANGO_SECRET_KEY '
+            '(ou DJANGO_DEBUG=True para desenvolvimento local).'
+        )
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    if host.strip()
+]
 
 
 # Application definition
